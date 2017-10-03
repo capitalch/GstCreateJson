@@ -1,0 +1,7 @@
+{
+    "port": 3005,
+    "env": "development",
+    "host": "http://localhost",
+    "homePageUrl": "",
+    "dbServerName":"server"
+}
