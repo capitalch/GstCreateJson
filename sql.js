@@ -1,8 +1,5 @@
 let sql = {
-	"post:gstr2":`
-		select acc_id,acc_code from acc_main;
-		select bill_memo_id, "date" from bill_memo;
-	`,
+	"post:gstr2":'select acc_id,acc_code into #temp1 from acc_main; select bill_memo_id into #temp2 from bill_memo; select * from  #temp2 union #temp1',
 	"post:gstr1": `
 	select 
     bill_memo_gstin = bill_memo.gstin,
