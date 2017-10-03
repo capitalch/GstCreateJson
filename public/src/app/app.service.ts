@@ -4,21 +4,22 @@ import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/map';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/filter';
-import {ActivatedRoute, Router} from '@angular/router';
+// import {ActivatedRoute, Router} from '@angular/router';
+import {urlMaps} from './app.config';
 
 @Injectable()
 export class AppService {
   //used to maintain a global object
   global : any = {};
   subject : Subject < any >;
-  urlMaps : {};
+
   messages = {
     idNotMappedToUrl: 'Message id is not mapped to http url in config.ts file at application root',
     httpGetUnknownError: 'Unknown error encountered while making http request'
   };
 
-  constructor(private http : Http, private activatedRoute : ActivatedRoute, private router : Router) {
-    
+  constructor(private http : Http) {
+    this.subject = new Subject();
   }
 
   get(id) {
@@ -40,7 +41,7 @@ export class AppService {
   };
 
   httpPost(id : string, body?: any) {
-    let url = this.urlMaps[id];
+    let url = urlMaps[id];
     let headers = new Headers();
     headers.append('Content-Type', 'application/json');
     this
@@ -63,9 +64,9 @@ export class AppService {
       });
   };
 
-  httpGet(id : string, queryParams?: [any], headers?: [any], carryBag?: any) {
+  httpGet(id : string, queryParams?: any[], headers?: [any], carryBag?: any) {
     try {
-      let url = this.urlMaps[id];
+      let url = urlMaps[id];
       let myParams = new URLSearchParams();
       queryParams && (queryParams.map(x => myParams.append(x.name, x.value)));
 
@@ -107,7 +108,7 @@ export class AppService {
   }
 
   httpPut(id : string, body?: any) {
-    let url = this.urlMaps[id];
+    let url = urlMaps[id];
     let headers = new Headers();
     headers.append('Content-Type', 'application/json');
     this

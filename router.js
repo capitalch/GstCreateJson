@@ -6,17 +6,13 @@ let def = require('./definitions');
 let messages = require('./messages');
 let sqlAny = require('./sqlAny');
 
-router.get('/api/gstr1', (req, res, next) => {
+router.post('/api/gstr1', (req, res, next) => {
     try
     {
-        let options = {
-            dbName: 'capi2017',
-            sqlKey: 'gstr1:test',
-            args: {}
-        }
+        let options = req.body;
         sqlAny.executeSql(options, (error, result) => {
             error
-                ? console.log(error)
+                ? res.json({error:error})
                 : res.json(result);
         })
     } catch (error) {

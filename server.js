@@ -10,7 +10,6 @@ let router = require('./router');
 
 let express = require('express');
 let app = express();
-app.use(router);
 let server = http.createServer(app);
 server.listen(config.port, function () {
     console.log("Server listening on: %s:%s", config.host, config.port);
