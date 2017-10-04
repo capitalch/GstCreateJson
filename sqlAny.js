@@ -1,11 +1,11 @@
 let fs = require('fs');
-let sqlAny = require('sqlanywhere');
+let sqlAnywhere = require('sqlanywhere');
 let sql = require('./sql');
 let config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 let messages = require('./messages');
 let util = require('util');
-
-let conn = sqlAny.createConnection();
+let sqlAny = {};
+let conn = sqlAnywhere.createConnection();
 let connParams = {
   EngineName: config.dbServerName,
   CommLinks: 'tcpip',
@@ -13,13 +13,13 @@ let connParams = {
   Password: 'sql'
 };
 
-let createSql = (options) => {  
+let createSql = (options) => {
   let sqlString = sql[options.sqlKey].toLowerCase();
   let args = options.args;
   let argsArray = Object
     .keys(args)
     .map(function (key) {
-      return {key: key, value: args[key]};
+      return { key: key, value: args[key] };
     });
 
   sqlString = argsArray.reduce((prev, current) => {
@@ -30,9 +30,32 @@ let createSql = (options) => {
   return (sqlString);
 }
 
+let doSqlExecute = (fn,sqlString) => {
+  let result;
+  if (conn.connected()) {
+    conn.disconnect();
+  }
+  conn.connect(connParams);
+  try {
+    conn.exec(sqlString, (err, result) => {
+      conn.disconnect();
+      if (err) {
+        err = {
+          error: err.message
+        };
+      }
+      fn(err, result);
+    });
+  } catch (error) {
+    fn({
+      error: error.message
+    }, result);
+  }
+}
+
 sqlAny.executeSql = (options, fn) => {
   let isValidOptions = false;
-  let result;
+  // let result;
   isValidOptions = options.dbName && options.sqlKey && options.args;
   if (!isValidOptions) {
     fn({
@@ -41,35 +64,8 @@ sqlAny.executeSql = (options, fn) => {
     return;
   }
   let sqlString = createSql(options);
-  Object.assign(connParams, {DatabaseName: options.dbName});
-
-  if (conn.connected()) {
-    conn.close()
-  }
-  conn
-    .connect(connParams, function (err) {
-      if (err) {
-        fn({
-          error: err.message
-        }, result)
-      } else {
-        try {          
-          conn.exec(sqlString, (err, result) => {
-            conn.disconnect();
-            if (err) {
-              err = {
-                error: err.message
-              };
-            }
-            fn(err, result);
-          });
-        } catch (error) {
-          fn({
-            error: error.message
-          }, result);
-        }
-      }
-    });
+  Object.assign(connParams, { DatabaseName: options.dbName });
+  doSqlExecute(fn,sqlString);
 }
 
 module.exports = sqlAny;
