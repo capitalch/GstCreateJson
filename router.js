@@ -45,7 +45,7 @@ router.post('/api/gstr1/json', (req, res, next) => {
             console.log(result);
             res.json(resultSet);
         });
-        console.log(resultSet);
+        // console.log(resultSet);
     } catch (error) {
         let err = new def.NError(500, messages.errInternalServerError, error.message);
         next(err);
