@@ -1,4 +1,5 @@
 function getGstr1(gstinNo, b2bData, b2csData, hsnData) {
+    //let b2bData = result.
     let gstr1 = {
         "gstin": gstin,
         "fp": "072017",

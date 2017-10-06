@@ -6,6 +6,7 @@ let router = express.Router();
 let def = require('./definitions');
 let messages = require('./messages');
 let sqlAny = require('./sqlAny');
+let artifacts = require('./artifacts');
 
 router.post('/api/gstr1', (req, res, next) => {
     try {
@@ -41,9 +42,14 @@ router.post('/api/gstr1/json', (req, res, next) => {
             return(fn);           
         });
         async.parallel(fns, function(err,result) {
-            console.log(err);
-            console.log(result);
-            res.json(resultSet);
+            let gstr1;
+            if(err){
+                console.log(err);
+                gstr1 = err;
+            } else{
+                //gstr1 = artifacts.getGstr1(result);
+            }
+            res.json(gstr1);
         });
         // console.log(resultSet);
     } catch (error) {
