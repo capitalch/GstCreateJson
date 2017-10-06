@@ -1,5 +1,60 @@
 let sql = {
-	"post:gstr1:reg:sale":`select 
+    "get:gstn:no": `select gstin=rtrim(gstin) from acc_setup;`,
+
+    "get:gstr1:b2b": `select 
+        bill_memo_gstin = bill_memo.gstin,
+        details_gstin = (select GSTIN from details where acc_id = bill_memo.acc_id)
+        ,customer_gstin = (select distinct GSTIN from customer where acc_id = bill_memo.acc_id),
+        gstin_no = if bill_memo_gstin is not null and rtrim(bill_memo_gstin) <> '' then bill_memo_gstin 
+        else if    details_gstin is not null and rtrim(details_gstin) <> '' then details_gstin else customer_gstin endif endif,
+        invoice_no=ref_no,invoice_date="date",invoice_value= total_amt, code = func_getacccode(bill_memo.acc_id),
+        tax_code= func_getAccCode(sale_tax_sale_id),
+        rate = (select rate= igst + cgst + sgst from tax where acc_id = bill_memo.sale_tax_sale_id),
+        taxable_value = (select sum(price * qty) from bill_memo_product where bill_memo_id = bill_memo.bill_memo_id), igst,cgst,sgst
+            from bill_memo
+                where type='S' 
+                    and gstin_no is not null and rtrim(gstin_no) <> '' 
+                    and "date" between :sdate and :edate
+                        order by "date"`,
+
+    "get:gstr1:b2cl": `select gst_code = func_getaccCode(sale_tax_sale_id),
+        rate = (select rate = igst + cgst + sgst from tax where acc_id = bill_memo.sale_tax_sale_id),
+        bill_memo_gstin = bill_memo.gstin,
+        details_gstin = (select GSTIN from details where acc_id = bill_memo.acc_id)
+        ,customer_gstin = (select distinct GSTIN from customer where acc_id = bill_memo.acc_id),
+        gstin_no = if bill_memo_gstin is not null and rtrim(bill_memo_gstin) <> '' then bill_memo_gstin 
+        else if    details_gstin is not null and rtrim(details_gstin) <> '' then details_gstin else customer_gstin endif endif
+        ,taxable_value = (select sum(price * qty) from bill_memo_product where bill_memo_id = bill_memo.bill_memo_id)
+        into #temp2    
+        from bill_memo 
+            where type='S'
+                and "date" between :sdate and :edate
+                and gstin_no is null or rtrim(gstin_no) = ''
+                    order by "date";
+            select gst_code,rate, taxable_value = sum(taxable_value) 
+                from #temp2
+                    group by gst_code, rate
+                        order by rate;`,
+                        
+    "get:gstr1:hsn": `select serial_no = number(),hsn,total_qty = sum(qty),
+        tax_code= func_getacccode(bill_memo.sale_tax_sale_id),
+        rate = (select rate = igst + cgst + sgst from tax where acc_id = bill_memo.sale_tax_sale_id),
+        taxable_value = sum(price*qty),
+        igst_rate = (select igst from tax where tax.acc_Id = bill_memo.sale_tax_sale_id),
+        cgst_rate = (select cgst from tax where tax.acc_Id = bill_memo.sale_tax_sale_id),
+        sgst_rate = (select sgst from tax where tax.acc_Id = bill_memo.sale_tax_sale_id),
+        igst= taxable_value * igst_rate/100,
+        cgst = taxable_value * cgst_rate/100,
+        sgst = taxable_value * sgst_rate/100,
+        total_value = taxable_value + igst + cgst + sgst
+        from bill_memo left join bill_memo_product
+            where type='S' 
+                and "date" between :sdate and :edate
+                    group by hsn,bill_memo.sale_tax_sale_id
+                        order by hsn`,
+
+    "post:gstin": `select gstin=rtrim(gstin) from acc_setup;`,
+    "post:gstr1:reg:sale": `select 
     bill_memo_gstin = bill_memo.gstin,
     details_gstin = (select GSTIN from details where acc_id = bill_memo.acc_id)
     ,customer_gstin = (select distinct GSTIN from customer where acc_id = bill_memo.acc_id),
@@ -15,7 +70,7 @@ let sql = {
                 and "date" between :sdate and :edate
                     order by "date"`,
 
-	"post:gstr1:unreg:sale":`select gst_code = func_getaccCode(sale_tax_sale_id),
+    "post:gstr1:unreg:sale": `select gst_code = func_getaccCode(sale_tax_sale_id),
     rate = (select rate = igst + cgst + sgst from tax where acc_id = bill_memo.sale_tax_sale_id),
     bill_memo_gstin = bill_memo.gstin,
     details_gstin = (select GSTIN from details where acc_id = bill_memo.acc_id)
@@ -33,7 +88,7 @@ select gst_code,rate, taxable_value = sum(taxable_value)
     from #temp2
         group by gst_code, rate
             order by rate`,
-	"post:gstr1:hsn:sale":`select serial_no = number(),hsn,total_qty = sum(qty),
+    "post:gstr1:hsn:sale": `select serial_no = number(),hsn,total_qty = sum(qty),
 	tax_code= func_getacccode(bill_memo.sale_tax_sale_id),
 	rate = (select rate = igst + cgst + sgst from tax where acc_id = bill_memo.sale_tax_sale_id),
     taxable_value = sum(price*qty),
@@ -49,13 +104,13 @@ select gst_code,rate, taxable_value = sum(taxable_value)
             and "date" between :sdate and :edate
                 group by hsn,bill_memo.sale_tax_sale_id
                     order by hsn`,
-	"post:gstr2":'select acc_id,acc_code into #temp1 from acc_main; select bill_memo_id into #temp2 from bill_memo; select * from  #temp2',
-	"post:acc":`select acc_id,acc_code from acc_main`,
-	"post:bill":`select bill_memo_id from bill_memo`,
-	"post:product":`select * from bill_memo_product`,
-	"post:tax":`select * from tax`,
-	"post:invoice":`select * from invoice`,
-	"post:gstr1": `
+    "post:gstr2": 'select acc_id,acc_code into #temp1 from acc_main; select bill_memo_id into #temp2 from bill_memo; select * from  #temp2',
+    "post:acc": `select acc_id,acc_code from acc_main`,
+    "post:bill": `select bill_memo_id from bill_memo`,
+    "post:product": `select * from bill_memo_product`,
+    "post:tax": `select * from tax`,
+    "post:invoice": `select * from invoice`,
+    "post:gstr1": `
 	select 
     bill_memo_gstin = bill_memo.gstin,
     details_gstin = (select GSTIN from details where acc_id = bill_memo.acc_id)
@@ -94,8 +149,8 @@ select gst_code,rate, taxable_value = sum(taxable_value)
 						group by gst_code
 							order by gst_code				
 					`,
-	'gstr1:test': `select acc_name,acc_id from acc_main`,
-	'tunnel:get:todays:sale': `SELECT "pos_name",   
+    'gstr1:test': `select acc_name,acc_id from acc_main`,
+    'tunnel:get:todays:sale': `SELECT "pos_name",   
          id="master_id" ,
 			sale = (select sum(if type = 'S' then total_amt else -total_amt endif) from bill_memo
 			where "date" = date(:mdate) and pos_id in(select pos_id from pointofsale where master_id = a.master_id)),
@@ -114,7 +169,7 @@ select gst_code,rate, taxable_value = sum(taxable_value)
                     where "date" = date(:mdate) and pos_id is null) ,
                     cgp = 0
             FROM dummy where sale is not null order by pos_name`,
-	'tunnel:get:business:health': `
+    'tunnel:get:business:health': `
         declare @customValue varchar(128) 
     	declare @custom decimal 
 	    set @customValue = (select MValue from KVSetting where MKey = 'customFigures') 
@@ -136,7 +191,7 @@ select gst_code,rate, taxable_value = sum(taxable_value)
 	    select #Stock.opStockValue, #Stock.closStockValue, #Stock.stockValueDiff,#Stock.stockOver90Days,#Stock.stockOver180Days,#Stock.stockOver270Days,#Stock.stockOver360Days, #Profit.profit, grossProfit = #Stock.stockValueDiff + #Profit.profit  
 	    +@custom from #stock, #Profit
         `,
-	'tunnel:get:cheque:payments': `SELECT "cheque_payment"."ref_no",   
+    'tunnel:get:cheque:payments': `SELECT "cheque_payment"."ref_no",   
          "cheque_payment"."cheq_no", 
          "cheque_payment"."cheq_date",  
          "cheque_payment"."cheq_amt",   

@@ -17,8 +17,10 @@
     "url": "https://github.com/capitalch/GstCreateJson/issues"
   },
   "dependencies": {
+    "async": "^2.5.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.1",
+    "rxjs": "^5.4.3",
     "sqlanywhere": "^1.0.21"
   },
   "homepage": "https://github.com/capitalch/GstCreateJson#readme",

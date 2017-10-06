@@ -30,7 +30,7 @@ let createSql = (options) => {
   return (sqlString);
 }
 
-let doSqlExecute = (fn,sqlString) => {
+let doExecuteSql = (fn,sqlString) => {
   let result;
   if (conn.connected()) {
     conn.disconnect();
@@ -65,7 +65,7 @@ sqlAny.executeSql = (options, fn) => {
   }
   let sqlString = createSql(options);
   Object.assign(connParams, { DatabaseName: options.dbName });
-  doSqlExecute(fn,sqlString);
+  doExecuteSql(fn,sqlString);
 }
 
 module.exports = sqlAny;
