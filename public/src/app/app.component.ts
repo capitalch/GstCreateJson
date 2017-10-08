@@ -1,7 +1,6 @@
 import {Component} from '@angular/core';
 import {AppService} from './app.service';
 import {urlMaps, AllMonths, AllDbNames, DefaultSettings} from './app.config';
-// import { b2bChild, getb2bInstance } from './model';
 import {getGstr1} from './artifacts';
 @Component({selector: 'app-root', templateUrl: './app.component.html', styleUrls: ['./app.component.css']})
 export class AppComponent {
@@ -28,6 +27,5 @@ export class AppComponent {
   }
   createJson() {}
   ngDestroy() {
-    // this   .subscriptions   .unsubscribe();
   }
 }

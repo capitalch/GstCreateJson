@@ -1,14 +1,18 @@
 let moment = require('moment');
 function getGstr1(monthNo, resultSet) {
-    // gstinNo, b2bData, b2csData, hsnData
     let setup = resultSet['get:gstin:startdate:enddate'][0];
-    let gstin = setup.gstin && setup.gstin.toUpperCase();
+    let gstin = setup.gstin && setup
+        .gstin
+        .toUpperCase();
     let finStartDate = setup.startdate;
     let finEndDate = setup.enddate;
     let finStartYear = moment(finStartDate, 'YYYY-MM-DD').year();
     let finEndYear = moment(finEndDate, 'YYYY-MM-DD').year();
+
+    let finYear = finStartYear + '-' + finEndYear
+        .toString()
+        .substring(2, 4);
     let returnPeriod = () => {
-        // let monthNo = "9"; let nMonthNo = +monthNo;
         let padding = monthNo < 10
             ? "0"
             : "";
@@ -16,12 +20,11 @@ function getGstr1(monthNo, resultSet) {
         let pYear = monthNo > 3
             ? finStartYear
             : finEndYear;
-        return(pMonthNo) + pYear;
+        return (pMonthNo) + pYear;
     };
     let b2bData = resultSet['get:gstr1:b2b'];
     let b2csData = resultSet['get:gstr1:b2cs'];
     let hsnData = resultSet['get:gstr1:hsn'];
-    //let b2bData = result.
     let gstr1 = {
         "gstin": gstin,
         "fp": returnPeriod(),
@@ -33,17 +36,24 @@ function getGstr1(monthNo, resultSet) {
         "b2cs": getB2csArray(b2csData),
         "hsn": getHsnData(hsnData)
     };
-    return (gstr1);
+    let bundle = {
+        finYear: finYear,
+        gstr1: gstr1,
+        gstin:gstin
+    };
+    return (bundle);
 }
 
 function getB2bArray(b2bData) {
     let b2bArray = b2bData.map(x => {
         return ({
-            "ctin": x.gstin_no.toUpperCase(),
+            "ctin": x
+                .gstin_no
+                .toUpperCase(),
             "inv": [
                 {
                     "inum": x.invoice_no,
-                    "idt": moment(x.invoice_date,'YYYY-MM-DD').format('DD-MM-YYYY'),
+                    "idt": moment(x.invoice_date, 'YYYY-MM-DD').format('DD-MM-YYYY'),
                     "val": + x.invoice_value,
                     "pos": "19",
                     "rchrg": "N",
@@ -71,6 +81,7 @@ function getHsnData(hsnData) {
         return ({
             num: x.serial_no,
             hsn_sc: x.hsn,
+            uqc: "PCS",
             qty: x.total_qty,
             val: + (+ x.total_value).toFixed(2),
             txval: + (+ x.taxable_value).toFixed(2),
@@ -88,7 +99,10 @@ function getHsnData(hsnData) {
 function getB2csArray(b2csData) {
     let b2csArray = b2csData.map(x => {
         return ({
+            "sply_ty": "INTRA",
             rt: + x.rate,
+            "typ": "OE",
+            "pos": 19,
             txval: + x.taxable_value,
             camt: + (x.taxable_value * (x.rate / 200)).toFixed(2),
             samt: + (x.taxable_value * (x.rate / 200)).toFixed(2)

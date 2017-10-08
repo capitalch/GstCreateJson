@@ -9,20 +9,6 @@ let messages = require('./messages');
 let sqlAny = require('./sqlAny');
 let artifacts = require('./artifacts');
 
-router.post('/api/gstr1', (req, res, next) => {
-    try {
-        let options = req.body;
-        sqlAny.executeSql(options, (error, result) => {
-            error
-                ? res.json({error: error})
-                : res.json(result);
-        })
-    } catch (error) {
-        let err = new def.NError(500, messages.errInternalServerError, error.message);
-        next(err);
-    }
-});
-
 router.get('/api/gstr1/json', (req, res, next) => {
     try {
         let query = req.query;
@@ -52,16 +38,17 @@ router.get('/api/gstr1/json', (req, res, next) => {
             return (fn);
         });
         async.parallel(fns, function (err, result) {
-            let gstr1;
+            let bundle;
             if (err) {
                 console.log(err);
                 gstr1 = err;
             } else {
-                gstr1 = artifacts.getGstr1(+monthNo + 1,resultSet);
+                bundle = artifacts.getGstr1(+monthNo + 1,resultSet);
             }
-            var json = JSON.stringify(gstr1);
-            var filename = 'gstr1Return.json';
-            var mimetype = 'application/json';
+            let json = JSON.stringify(bundle.gstr1);
+            let monthShortName = moment.monthsShort(+monthNo);
+            let filename = monthShortName.concat('_',bundle.finYear,'_GSTR1_',bundle.gstin,'.json');
+            let mimetype = 'application/json';
             res.setHeader('Content-Type', mimetype);
             res.setHeader('Content-disposition', 'attachment; filename=' + filename);
             res.send(json);           
@@ -71,18 +58,4 @@ router.get('/api/gstr1/json', (req, res, next) => {
         next(err);
     }
 });
-
-router.get('/api/gstr1/user', (req, res, next) => {
-    var user = {
-        "name": "azraq",
-        "country": "egypt"
-    };
-    var json = JSON.stringify(user);
-    var filename = 'user.json';
-    var mimetype = 'application/json';
-    res.setHeader('Content-Type', mimetype);
-    res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-    // res.send( json );
-    res.json(user);
-})
 module.exports = router;
