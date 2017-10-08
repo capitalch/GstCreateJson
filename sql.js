@@ -1,5 +1,5 @@
 let sql = {
-    "get:gstn:no": `select gstin=rtrim(gstin) from acc_setup;`,
+    "get:gstin:startdate:enddate": `select gstin=rtrim(gstin),startDate,endDate from acc_setup;`,
 
     "get:gstr1:b2b": `select 
         bill_memo_gstin = bill_memo.gstin,
@@ -17,7 +17,7 @@ let sql = {
                     and "date" between :sdate and :edate
                         order by "date"`,
 
-    "get:gstr1:b2cl": `select gst_code = func_getaccCode(sale_tax_sale_id),
+    "get:gstr1:b2cs": `select gst_code = func_getaccCode(sale_tax_sale_id),
         rate = (select rate = igst + cgst + sgst from tax where acc_id = bill_memo.sale_tax_sale_id),
         bill_memo_gstin = bill_memo.gstin,
         details_gstin = (select GSTIN from details where acc_id = bill_memo.acc_id)

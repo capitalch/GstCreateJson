@@ -1,0 +1,7 @@
+1. Error handling and propagation
+2. Handle situations when array has no items
+3. camt inclusion
+4. Check inclusion of other fields as well
+5. Debt notes / credit notes in the return
+6. Handle situations for no inventory items for business of Capital Electronics and Nav Technology Pvt Ltd.
+7. Date format correction

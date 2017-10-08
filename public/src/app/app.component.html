@@ -1,5 +1,29 @@
 <div>
-  <button (click)= "createJson()">Create JSON</button>
+  <h3>Gst Monthly returns</h3>
+  <mat-grid-list cols="8" rowHeight="80px">
+    <mat-grid-tile colspan="1" rowspan='1'>
+      <!-- <mat-form-field>
+        <input matInput placeholder="Database name" [(ngModel)]="dbName">
+      </mat-form-field> -->
+      <mat-form-field>
+        <mat-select placeholder="Select database" color="primary" [(ngModel)]="selectedDbName">
+          <mat-option *ngFor="let dbName of dbNames" [value]="dbName">
+            {{ dbName }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile colspan="2" rowspan='1'>
+      <mat-form-field>
+        <mat-select placeholder="Select month" color="primary" [(ngModel)]="selectedMonth">
+          <mat-option *ngFor="let month of months" [value]="month.value">
+            {{ month.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile colspan="1" rowspan='1'>
+      <a mat-raised-button color="primary" [attr.href]="url()" (click)="gstReturns()">Download Gstr1 return </a>
+    </mat-grid-tile>
+  </mat-grid-list>
 </div>
-
-
