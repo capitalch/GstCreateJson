@@ -25,9 +25,9 @@ function getGstr1(monthNo, resultSet) {
     let b2bData = resultSet['get:gstr1:b2b'];
     let b2csData = resultSet['get:gstr1:b2cs'];
     let hsnData = resultSet['get:gstr1:hsn'];
-    
-    let invalidGstins=[];
-    let fn = (invalidGstin)=>{
+
+    let invalidGstins = [];
+    let fn = (invalidGstin) => {
         invalidGstins.push(invalidGstin);
     };
     let gstr1 = {
@@ -37,22 +37,23 @@ function getGstr1(monthNo, resultSet) {
         "cur_gt": 0,
         "version": "GST1.2.1",
         "hash": "hash",
-        "b2b": getB2bArray(b2bData,fn),
+        "b2b": getB2bArray(b2bData, fn),
         "b2cs": getB2csArray(b2csData),
         "hsn": getHsnData(hsnData)
     };
     let bundle = {
         finYear: finYear,
         gstr1: gstr1,
-        gstin:gstin,
-        invalidGstins:invalidGstins
+        gstin: gstin,
+        invalidGstins: invalidGstins
     };
     return (bundle);
 }
 
-function getB2bArray(b2bData,fn) {
+function getB2bArray(b2bData, fn) {
+    let gstinRegEx = new RegExp("^([0][1-9]|[1-2][0-9]|[3][0-5])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$");
     let b2bArray = b2bData.map(x => {
-        let gstinRegEx = new RegExp("^([0][1-9]|[1-2][0-9]|[3][0-5])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$");
+
         !gstinRegEx.test(x.gstin_no) && fn(x.gstin_no);
         return ({
             "ctin": x
