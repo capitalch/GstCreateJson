@@ -56,8 +56,8 @@ let sql = {
     total_value = taxable_value + igst + cgst + sgst
     from bill_memo left join bill_memo_product
         where "date" between :sdate and :edate			
-                group by hsn,bill_memo.sale_tax_sale_id
-                    order by hsn,bill_memo.sale_tax_sale_id`
+                group by hsn,rate,sale_tax_sale_id
+                    order by hsn,rate`
 
 };
 module.exports = sql;
