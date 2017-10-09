@@ -33,12 +33,12 @@ let createSql = (options) => {
 let doExecuteSql = (fn,sqlString) => {
   let result;
   if (conn.connected()) {
-    conn.disconnect();
+    conn.close();
   }
   conn.connect(connParams);
   try {
     conn.exec(sqlString, (err, result) => {
-      conn.disconnect();
+      conn.close();
       if (err) {
         err = {
           error: err.message

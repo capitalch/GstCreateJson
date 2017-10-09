@@ -46,7 +46,7 @@ router.get('/api/gstr1/json', (req, res, next) => {
             };
             return (fn);
         });
-        async.parallel(fns, function (err, result) {
+        async.series(fns, function (err, result) {
             let bundle;
             if (err) {
                 console.log(err);
