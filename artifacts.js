@@ -1,4 +1,5 @@
 let moment = require('moment');
+let _ = require('lodash');
 function getGstr1(monthNo, resultSet) {
     let setup = resultSet['get:gstin:startdate:enddate'][0];
     let gstin = setup.gstin && setup
@@ -52,36 +53,71 @@ function getGstr1(monthNo, resultSet) {
 
 function getB2bArray(b2bData, fn) {
     let gstinRegEx = new RegExp("^([0][1-9]|[1-2][0-9]|[3][0-5])([a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9a-zA-Z]{1}[zZ]{1}[0-9a-zA-Z]{1})+$");
-    let b2bArray = b2bData.map(x => {
+    let b2bGroup = _.groupBy(b2bData, 'gstin_no');
 
-        !gstinRegEx.test(x.gstin_no) && fn(x.gstin_no);
-        return ({
-            "ctin": x
-                .gstin_no
-                .toUpperCase(),
-            "inv": [
-                {
-                    "inum": x.invoice_no,
-                    "idt": moment(x.invoice_date, 'YYYY-MM-DD').format('DD-MM-YYYY'),
-                    "val": + x.invoice_value,
-                    "pos": "19",
-                    "rchrg": "N",
-                    "inv_typ": "R",
-                    "itms": [
-                        {
-                            "num": 1,
-                            "itm_det": {
-                                "txval": + x.taxable_value,
-                                "rt": + x.rate,
-                                "camt": + x.cgst,
-                                "samt": + x.sgst
-                            }
+    let b2bArray = Object.keys(b2bGroup).map(k => {
+        let ret = {
+            "ctin": k
+                .toUpperCase()
+        };
+        let invoices = b2bGroup[k].map(x => {
+            return ({
+                "inum": x.invoice_no,
+                "idt": moment(x.invoice_date, 'YYYY-MM-DD').format('DD-MM-YYYY'),
+                "val": + x.invoice_value,
+                "pos": "19",
+                "rchrg": "N",
+                "inv_typ": "R",
+                "itms": [
+                    {
+                        "num": 1,
+                        "itm_det": {
+                            "txval": + x.taxable_value,
+                            "rt": + x.rate,
+                            "camt": + x.cgst,
+                            "samt": + x.sgst,
+                            "csamt": 0,
+                            "iamt": x.igst
                         }
-                    ]
-                }
-            ]
+                    }
+                ]
+            });
         });
+        ret.inv = invoices;
+        return (ret);
     });
+
+
+    // 
+    // let b2bArray = b2bData.map(x => {
+    //     !gstinRegEx.test(x.gstin_no) && fn(x.gstin_no);
+    //     return ({
+    //         "ctin": x
+    //             .gstin_no
+    //             .toUpperCase(),
+    //         "inv": [
+    //             {
+    //                 "inum": x.invoice_no,
+    //                 "idt": moment(x.invoice_date, 'YYYY-MM-DD').format('DD-MM-YYYY'),
+    //                 "val": + x.invoice_value,
+    //                 "pos": "19",
+    //                 "rchrg": "N",
+    //                 "inv_typ": "R",
+    //                 "itms": [
+    //                     {
+    //                         "num": 1,
+    //                         "itm_det": {
+    //                             "txval": + x.taxable_value,
+    //                             "rt": + x.rate,
+    //                             "camt": + x.cgst,
+    //                             "samt": + x.sgst
+    //                         }
+    //                     }
+    //                 ]
+    //             }
+    //         ]
+    //     });
+    // });
     return (b2bArray);
 }
 
@@ -96,7 +132,8 @@ function getHsnData(hsnData) {
             txval: + (+ x.taxable_value).toFixed(2),
             iamt: + (+ x.igst).toFixed(2),
             samt: + (+ x.sgst).toFixed(2),
-            camt: + (+ x.cgst).toFixed(2)
+            camt: + (+ x.cgst).toFixed(2),
+            csamt: 0
         });
     });
     let ret = {
@@ -114,7 +151,8 @@ function getB2csArray(b2csData) {
             "pos": 19,
             txval: + x.taxable_value,
             camt: + (x.taxable_value * (x.rate / 200)).toFixed(2),
-            samt: + (x.taxable_value * (x.rate / 200)).toFixed(2)
+            samt: + (x.taxable_value * (x.rate / 200)).toFixed(2),
+            csamt: 0
         });
     });
     return (b2csArray);
