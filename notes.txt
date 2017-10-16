@@ -1,3 +1,11 @@
+//Difference found
+1. iamt is to be included only where it is needed. In numeric format and not string format. 
+2. Corresponding POS for iamt is also to be provided. When iamt is there then camt and samt should be removed
+3. b2cs the zero valued invoices should be removed
+4. In Hsn the hsn_sc cannot be null
+5. In Hsn the val and txval cannot be 0
+6. In Hsn the aggregation on HSN code should be there. Presently same hsn is appearing multiple times
+
 1. Error handling and propagation
 2. Handle situations when array has no items
 3. camt inclusion

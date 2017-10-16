@@ -61,7 +61,18 @@ function getB2bArray(b2bData, fn) {
                 .toUpperCase()
         };
         let invoices = b2bGroup[k].map(x => {
-            return ({
+            let itm = {
+                "num": 1,
+                "itm_det": {
+                    "txval": + x.taxable_value,
+                    "rt": + x.rate
+                }
+            };
+            + x.cgst && (itm.itm_det.camt = +x.cgst);
+            + x.sgst && (itm.itm_det.samt = +x.sgst);
+            + x.igst && (itm.itm_det.iamt = +x.iamt);
+            itm.itm_det.csamt = 0;
+            let ret1 = {
                 "inum": x.invoice_no,
                 "idt": moment(x.invoice_date, 'YYYY-MM-DD').format('DD-MM-YYYY'),
                 "val": + x.invoice_value,
@@ -69,19 +80,10 @@ function getB2bArray(b2bData, fn) {
                 "rchrg": "N",
                 "inv_typ": "R",
                 "itms": [
-                    {
-                        "num": 1,
-                        "itm_det": {
-                            "txval": + x.taxable_value,
-                            "rt": + x.rate,
-                            "camt": + x.cgst,
-                            "samt": + x.sgst,
-                            "csamt": 0,
-                            "iamt": x.igst
-                        }
-                    }
+                    itm
                 ]
-            });
+            };
+            return (ret1);
         });
         ret.inv = invoices;
         return (ret);
